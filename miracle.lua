@@ -44,7 +44,8 @@ function generateSettings()
    },
    load = {
      hide = false,
-   }
+     pos = {x = 0, y = 340},
+   },
  }
   settings.fonts = {
     default = 'Monaco',
@@ -573,7 +574,7 @@ function updateLoad(config)
   gauge(cr, load5m, {
     pos = {x = pos.x+8, y = pos.y+500},
     radius = 470, thickness = 8,
-    from = 0, to = 33,
+    from = 1, to = 32.5,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
@@ -584,7 +585,7 @@ function updateLoad(config)
   gauge(cr, load15m, {
     pos = {x = pos.x+8, y = pos.y+500},
     radius = 462, thickness = 4,
-    from = 0, to = 30,
+    from = 2, to = 30,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
@@ -595,7 +596,7 @@ function updateLoad(config)
 
   -- label
   write(cr, 'Load', {
-    pos = {x = pos.x+20, y = pos.y+45},
+    pos = {x = pos.x+25, y = pos.y+45},
     font = {settings.fonts.significant, 16, 0},
     color = settings.colors.highlight,
     align = {'left', 'top'},
@@ -603,7 +604,7 @@ function updateLoad(config)
 
   -- text
   write(cr, load1m .. ' | ' .. load5m .. ' | ' .. load15m, {
-    pos = {x = pos.x+20, y = pos.y+65},
+    pos = {x = pos.x+25, y = pos.y+65},
     font = {settings.fonts.default, 10},
     color = settings.colors.default,
     align = {'left', 'top'},
