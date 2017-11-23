@@ -27,7 +27,7 @@ function generateSettings()
    },
    disks = {
      hide = false,
-     pos = {x = 30, y = 250},
+     pos = {x = 0, y = 250},
      disks = 'auto',
      exclude = {'/var/lib/docker', 'fast.workspace', '/boot/efi'},
      include = {NAS = '/media/nas/media'}
@@ -35,7 +35,7 @@ function generateSettings()
    },
    network = {
      hide = false,
-     pos = {x = width - 210, y = 300},
+     pos = {x = width - 210, y = 315},
      network = 'auto', -- network name 'eth0'
    },
    battery = {
@@ -93,7 +93,7 @@ function conky_main()
   for widget,config in pairs(settings.widgets) do
     if config.hide == nil or config.hide == false then
       if widget == 'clock' then updateClock(config) end
-      if widget == 'cpu' then updateCPU(config) end
+      if widget == 'cpu' then updateCpu(config) end
       if widget == 'memory' then updateMemory(config) end
       if widget == 'disks' then updateDisks(config) end
       if widget == 'network' then updateNetwork(config) end
@@ -120,7 +120,7 @@ function updateClock(config)
   end
 end
 
-function updateCPU(config)
+function updateCpu(config)
   local pos = config.pos or {x = 0, y = 0}
   local freq = conky_parse('${freq_g cpu0}')
   local temperature = conky_parse('${hwmon ' .. getCoreHwmon() .. ' temp 1}')
@@ -179,10 +179,10 @@ function updateCPU(config)
     warn = {from = 90, color = settings.colors.gaugeWarn},
   })
   graph(cr, 'cpu', tonumber(avgCpu), {
-    pos = {x = pos.x+140, y = pos.y + 90},
+    pos = {x = pos.x+163, y = pos.y + 90},
     direction = 'left', amplitude = 'center',
     color = settings.colors.gauge,
-    alpha = 0.9, width = 140, height = 20,
+    alpha = 0.9, width = 163, height = 20,
   })
 
   -- cpus
@@ -276,11 +276,10 @@ function updateMemory(config)
   -- memory
   local used = humanReadableBytes(memUsed + memShared, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local total = humanReadableBytes(memTotal + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
-  write(cr, 'RAM  ' .. used .. ' / ' .. total, {
-    pos = {x = pos.x+200, y = pos.y+122},
+  write(cr, 'RAM    ' .. used .. ' / ' .. total, {
+    pos = {x = pos.x+58, y = pos.y+131},
     font = {settings.fonts.default, 10},
     color = settings.colors.default,
-    align = {'right', 'top'},
   })
   gauge(cr, memUsed + memShared, {
     pos = {x = pos.x+48, y = pos.y+68},
@@ -302,11 +301,10 @@ function updateMemory(config)
   -- swap
   local used = humanReadableBytes(swapUsed + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local total = humanReadableBytes(swapTotal + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
-  write(cr, 'SWAP ' .. used .. ' / ' .. total, {
-    pos = {x = pos.x+200, y = pos.y+120},
+  write(cr, 'Swap   ' .. used .. ' / ' .. total, {
+    pos = {x = pos.x+58, y = pos.y+115},
     font = {settings.fonts.default, 10},
     color = settings.colors.default,
-    align = {'right', 'bottom'},
   })
   gauge(cr, tonumber(swapUsed), {
     pos = {x = pos.x+48, y = pos.y+68},
@@ -318,6 +316,14 @@ function updateMemory(config)
     max = swapTotal,
     warn = {from = swapTotal * 0.1, color = settings.colors.gaugeWarn},
     crit = {from = swapTotal * 0.2, color = settings.colors.gaugeCrit},
+  })
+
+  -- caches
+  local buffer = humanReadableBytes(memBuffers + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
+  write(cr, 'Cache            ' .. buffer, {
+    pos = {x = pos.x+58, y = pos.y+142},
+    font = {settings.fonts.default, 10},
+    color = settings.colors.default, alpha = 0.5,
   })
 
   -- top
@@ -342,7 +348,7 @@ function updateMemory(config)
 end
 
 function updateDisks(config)
-  local pos = config.pos or {x = 30, y = 250}
+  local pos = config.pos or {x = 0, y = 250}
   local disks = config.disks or 'auto'
   if disks == 'auto' then
     disks = {
@@ -382,20 +388,20 @@ function updateDisks(config)
     local used = conky_parse('${fs_used ' .. mount .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
     local total = conky_parse('${fs_size ' .. mount .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
     write(cr, name, {
-      pos = {x = pos.x, y = y},
+      pos = {x = pos.x + 2, y = y},
       font = {settings.fonts.default, 10},
       color = settings.colors.default,
     })
     write(cr, used .. ' / ' .. total, {
-      pos = {x = pos.x+170, y = y},
+      pos = {x = pos.x+200, y = y},
       font = {settings.fonts.default, 10},
       color = settings.colors.default,
       align = {'right'},
     })
     gauge(cr, tonumber(conky_parse('${fs_used_perc ' .. mount .. '}')), {
-        pos = {x = pos.x+180, y = pos.y+60},
+        pos = {x = pos.x+210, y = pos.y+60},
         radius = radius, thickness = 7,
-        from = 0, to = 240,
+        from = 0, to = 270,
         background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
         color = settings.colors.gauge,
         alpha = settings.colors.gaugeAlpha,
@@ -408,15 +414,15 @@ function updateDisks(config)
 
   -- label
   write(cr, 'Disks', {
-    pos = {x = pos.x+75, y = pos.y+58},
-    font = {settings.fonts.significant, 24, 0},
+    pos = {x = pos.x + 2, y = pos.y+58},
+    font = {settings.fonts.significant, 18, 0},
     color = settings.colors.highlight,
     align = {'left', 'top'},
   })
 end
 
 function updateNetwork(config)
-  local pos = config.pos or {x = width - 410, y = 300}
+  local pos = config.pos or {x = width - 210, y = 315}
   local network = config.network or getCurrentNetwork()
   if network == 'auto' then
     network = getCurrentNetwork()
@@ -431,7 +437,7 @@ function updateNetwork(config)
   -- label
   write(cr, 'Network', {
     pos = {x = pos.x+195, y = pos.y+8},
-    font = {settings.fonts.significant, 24, 0},
+    font = {settings.fonts.significant, 18, 0},
     color = settings.colors.highlight,
     align = {'right', 'top'},
   })
@@ -449,11 +455,11 @@ function updateNetwork(config)
     warn = {from = cache.maxUp * .95, color = settings.colors.gaugeWarn},
   })
   graph(cr, 'upload', upspeed, {
-    pos = {x = pos.x+40, y = pos.y + 50},
+    pos = {x = pos.x+35, y = pos.y + 50},
     direction = 'right', amplitude = 'up',
     color = settings.colors.gauge,
     alpha = 0.9, max = 'auto',
-    width = 155, height = 12,
+    width = 160, height = 12,
   })
   local totalUp = conky_parse('${totalup ' .. network .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
   local up = humanReadableBytes(upspeed, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
@@ -477,11 +483,11 @@ function updateNetwork(config)
     warn = {from = cache.maxUp * .95, color = settings.colors.gaugeWarn},
   })
   graph(cr, 'download', downspeed, {
-    pos = {x = pos.x+40, y = pos.y + 53},
+    pos = {x = pos.x+35, y = pos.y + 53},
     direction = 'right', amplitude = 'down',
     color = settings.colors.gauge,
     alpha = 0.9, max = 'auto',
-    width = 155, height = 12,
+    width = 160, height = 12,
   })
   local totalDown = conky_parse('${totaldown ' .. network .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
   local down = humanReadableBytes(downspeed, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
@@ -537,10 +543,10 @@ function updateBattery(config)
     crit = {to = 5, color = settings.colors.gaugeCrit},
   })
 
-  local file = 'battery.png'
+  local file = 'assets/battery.png'
   local battery_status=conky_parse('${battery_short BAT0}')
   if battery_status == 'F' or battery_status:find('C') then
-    file = 'power.png'
+    file = 'assets/power.png'
   end
   image = imlib_load_image(file)
   if image == nil then return end
@@ -551,16 +557,16 @@ end
 function updateLoad(config)
   local pos = config.pos or {x = 0, y = 340}
 
-  local load1m = tonumber(conky_parse('${loadavg 1}'))
-  local load5m = tonumber(conky_parse('${loadavg 2}'))
-  local load15m = tonumber(conky_parse('${loadavg 3}'))
+  local load1m = conky_parse('${loadavg 1}')
+  local load5m = conky_parse('${loadavg 2}')
+  local load15m = conky_parse('${loadavg 3}')
   local cpuCount = getCpuCount()
   local max = config.max or (cpuCount * 2)
   local warn = config.warn or cpuCount
   local crit = config.crit or (cpuCount * 1.1)
 
   -- gauges
-  gauge(cr, load1m, {
+  gauge(cr, tonumber(load1m), {
     pos = {x = pos.x+8, y = pos.y+500},
     radius = 484, thickness = 16,
     from = 0, to = 35,
@@ -571,10 +577,10 @@ function updateLoad(config)
     warn = {from = warn, color = settings.colors.gaugeWarn},
     crit = {from = crit, color = settings.colors.gaugeCrit},
   })
-  gauge(cr, load5m, {
+  gauge(cr, tonumber(load5m), {
     pos = {x = pos.x+8, y = pos.y+500},
     radius = 470, thickness = 8,
-    from = 1, to = 32.5,
+    from = 0, to = 33,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
@@ -582,10 +588,10 @@ function updateLoad(config)
     warn = {from = warn, color = settings.colors.gaugeWarn},
     crit = {from = crit, color = settings.colors.gaugeCrit},
   })
-  gauge(cr, load15m, {
+  gauge(cr, tonumber(load15m), {
     pos = {x = pos.x+8, y = pos.y+500},
     radius = 462, thickness = 4,
-    from = 2, to = 30,
+    from = 0, to = 31,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
@@ -595,16 +601,19 @@ function updateLoad(config)
   })
 
   -- label
-  write(cr, 'Load', {
-    pos = {x = pos.x+25, y = pos.y+45},
-    font = {settings.fonts.significant, 16, 0},
+  write(cr, 'Load average', {
+    pos = {x = pos.x+2, y = pos.y+58},
+    font = {settings.fonts.significant, 18, 0},
     color = settings.colors.highlight,
     align = {'left', 'top'},
   })
 
   -- text
-  write(cr, load1m .. ' | ' .. load5m .. ' | ' .. load15m, {
-    pos = {x = pos.x+25, y = pos.y+65},
+  -- load1m = load1m:pad(5, ' ')
+  -- load5m = load5m:pad(5, ' ')
+  -- load15m = load15m:pad(5, ' ')
+  write(cr, '1 | 5 | 15 Min: ' .. load1m .. ' | ' .. load5m .. ' | ' .. load15m, {
+    pos = {x = pos.x+2, y = pos.y + 94},
     font = {settings.fonts.default, 10},
     color = settings.colors.default,
     align = {'left', 'top'},
