@@ -24,7 +24,10 @@ Clone or download this repository and execute the `start.sh`.
 
 ## Screenshots
 
-[![desktop](examples/desktop.png)](examples/desktop.png)
+[![desktop](examples/desktop.png)](examples/desktop.png)  
+[![stressed](examples/stressed.png)](examples/stressed.png)  
+[![charging](examples/charging.png)](examples/charging.png)  
+[![blue](examples/blue.png)](examples/blue.png)  
 
 ## License
 

@@ -14,6 +14,8 @@ function generateSettings()
       hide = false,
       pos = {x = width, y = 0},
       showDate = true,
+      timeFormat = '%H:%M',
+      dateFormat = '%A, %e. %B'
    },
     cpu = {
       hide = false,
@@ -28,10 +30,10 @@ function generateSettings()
    disks = {
      hide = false,
      pos = {x = 0, y = 250},
+     -- disks = {Home = '/home', Root = '/'}
      disks = 'auto',
      exclude = {'/var/lib/docker', 'fast.workspace', '/boot/efi'},
      include = {NAS = '/media/nas/media'}
-     -- disks = {Home = '/home', Root = '/'}
    },
    network = {
      hide = false,
@@ -48,7 +50,7 @@ function generateSettings()
    },
  }
   settings.fonts = {
-    default = 'Monaco',
+    default = 'Monaco', -- suggestion: use a mono spaced font
     significant = 'GE Inspira',
  }
   settings.colors = {
@@ -92,26 +94,26 @@ function conky_main()
 
   for widget,config in pairs(settings.widgets) do
     if config.hide == nil or config.hide == false then
-      if widget == 'clock' then updateClock(config) end
-      if widget == 'cpu' then updateCpu(config) end
-      if widget == 'memory' then updateMemory(config) end
-      if widget == 'disks' then updateDisks(config) end
+      if widget == 'clock'   then updateClock(config)   end
+      if widget == 'cpu'     then updateCpu(config)     end
+      if widget == 'memory'  then updateMemory(config)  end
+      if widget == 'disks'   then updateDisks(config)   end
       if widget == 'network' then updateNetwork(config) end
       if widget == 'battery' then updateBattery(config) end
-      if widget == 'load' then updateLoad(config) end
+      if widget == 'load'    then updateLoad(config)    end
     end
   end
 end
 
 function updateClock(config)
-  local bb = write(cr, os.date('%H:%M'), {
+  local bb = write(cr, os.date(config.timeFormat or '%H:%M'), {
     pos = config.pos or {x = width, y = 0},
     font = {settings.fonts.significant, 64},
     color = settings.colors.default,
     align = {'right', 'top'},
   })
   if config.showDate == nil or config.showDate then
-    write(cr, os.date('%A, %b %e'), {
+    write(cr, os.date(config.dateFormat or '%A, %b %e'), {
       pos = {x = config.pos.x or width, y = bb.bottom + 4},
       font = {settings.fonts.significant, 18, 1},
       color = settings.colors.highlight,
@@ -528,8 +530,9 @@ function updateBattery(config)
   local pos = config.pos or {x = width - 382, y = 88}
 
   local percentage = tonumber(conky_parse('${battery_percent BAT0}'))
+  -- I'm not really sure how to handle two batteries. Here I just create an average over both batteries
   if hasBattery('BAT1') then
-    percentage = (percentage + tonumber(conky_parse('${battery_percent BAT0}'))) / 2
+    percentage = (percentage + tonumber(conky_parse('${battery_percent BAT1}'))) / 2
   end
 
   bar(cr, percentage, {
