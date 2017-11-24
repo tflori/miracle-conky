@@ -365,7 +365,7 @@ function updateDisks(config)
 
     local mounts = os.capture('mount |egrep \'^/dev/\''):split("\n")
     for _,mount in pairs(mounts) do
-      mount = mount:match('on (/[a-zA-Z0-9./_-]*)')
+      mount = mount:match('on (/[a-zA-Z0-9 ./_-]*) type')
       if mount ~= nil and mount ~= '/' then
         local excluded = false
         for _,exclude in pairs(config.exclude) do
