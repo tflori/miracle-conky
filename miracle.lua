@@ -615,7 +615,7 @@ function updateLoad(config)
   -- load1m = load1m:pad(5, ' ')
   -- load5m = load5m:pad(5, ' ')
   -- load15m = load15m:pad(5, ' ')
-  write(cr, '1 | 5 | 15 Min: ' .. load1m .. ' | ' .. load5m .. ' | ' .. load15m, {
+  write(cr, '1m ' .. load1m .. ' | 5m ' .. load5m .. ' | 15m ' .. load15m, {
     pos = {x = pos.x+2, y = pos.y + 94},
     font = {settings.fonts.default, 10},
     color = settings.colors.default,
