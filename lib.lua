@@ -122,7 +122,7 @@ function getCoreHwmon()
 end
 
 function getCurrentNetwork()
-  networks = os.capture('route|grep default|egrep -o \'[a-z0-9-]*$\''):split("\n")
+  networks = os.capture('route -n|egrep \'^0.0.0.0\'|egrep -o \'[a-z0-9-]*$\''):split("\n")
   return networks[1]
 end
 
