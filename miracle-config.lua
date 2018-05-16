@@ -23,7 +23,7 @@ conky.config = {
 -- Window specifications #
 	own_window_class = 'Conky',
 	own_window = true,
-	own_window_type = 'normal',
+	own_window_type = 'desktop',
 	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
 	own_window_transparent = false,
 
