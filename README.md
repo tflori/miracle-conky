@@ -10,13 +10,13 @@ environment. The configuration script is only executed at the beginning and when
 
 So the result was to have everything in the lua hook (text, icons, graphs, bars). The reason for this script
 was to have the same configuration file on each machine (desktop, notebook). It automatically detects the
-amound of cpu cores, the network, the network speed, the mounted drives and if a battery is available.
+amount of CPU cores, the network, the network speed, the mounted drives and if a battery is available.
 
 ## Requirements
 
 This conky configuration needs a conky with lua support and the libraries cairo and imlib2.
 
-I tested, developed and using it with gnome 3.26 in manjaro linux using the package `conky-lua-nv`.
+I tested, developed and using it with gnome 3.26 in Manjaro Linux using the package `conky-lua-nv`.
 
 ## Install
 

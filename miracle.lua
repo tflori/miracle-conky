@@ -2,70 +2,10 @@ require 'lib'
 require 'cairo-tools'
 require 'imlib2'
 
-local settings, cache = {}, {}
+conky = {}
+require 'miracle-config'
+local settings, cache = conky.miracle, {}
 local cr, width, height, updates
-
-function generateSettings()
-  if settings.generated then return end
-
-  settings.generated = true
-  settings.widgets = {
-    clock = {
-      hide = false,
-      pos = {x = width, y = 0},
-      showDate = true,
-      timeFormat = '%H:%M',
-      dateFormat = '%A, %e. %B'
-   },
-    cpu = {
-      hide = false,
-      pos = {x = 0, y = 0},
-      top = 3,
-   },
-   memory = {
-     hide = false,
-     pos = {x = width-205, y = 150},
-     top = 3,
-   },
-   disks = {
-     hide = false,
-     pos = {x = 0, y = 250},
-     -- disks = {Home = '/home', Root = '/'}
-     disks = 'auto',
-     exclude = {'/var/lib/docker', 'fast.workspace', '/boot/efi'},
-     include = {NAS = '/media/nas/media'}
-   },
-   network = {
-     hide = false,
-     pos = {x = width - 210, y = 315},
-     network = 'auto', -- network name 'eth0'
-   },
-   battery = {
-     hide = false,
-     pos = {x = width - 182, y = 88},
-   },
-   load = {
-     hide = false,
-     pos = {x = 0, y = 340},
-   },
- }
-  settings.fonts = {
-    default = 'Monaco', -- suggestion: use a mono spaced font
-    significant = 'GE Inspira',
- }
-  settings.colors = {
-    default = 0xffffff,
-    highlight = 0xff7f44,
-    gaugeBg = 0x000000,
-    gaugeBgAlpha = 0.15,
-    gauge = 0xffffff,
-    gaugeAlpha = 0.9,
-    gaugeInfo = 0xffbb55,
-    gaugeWarn = 0xff7f44,
-    gaugeCrit = 0xff3333,
- }
-
-end
 
 function conky_main()
   if conky_window==nil or conky_window.width == 0 then return end
@@ -80,7 +20,6 @@ function conky_main()
   cr = cairo_create(cs)
   width = conky_window.width
   height = conky_window.height
-  generateSettings()
 
   updates=tonumber(conky_parse('${updates}'))
 
@@ -127,6 +66,7 @@ function updateCpu(config)
   local freq = conky_parse('${freq_g cpu0}')
   local temperature = conky_parse('${hwmon ' .. getCoreHwmon() .. ' temp 1}')
   local avgCpu = conky_parse('${cpu cpu0}')
+  local cpuCount = getCpuCount()
   local warnTemp, critTemp, maxTemp = 60, 80, 110
   if (cache.cpu == nil or cache.cpu.idleTemperatureCount < 1000) and (tonumber(freq) < 1 or tonumber(avgCpu) < 10) then
     if cache.cpu == nil then cache.cpu = {} end
@@ -174,11 +114,12 @@ function updateCpu(config)
   gauge(cr, tonumber(avgCpu), {
     pos = {x = pos.x+150, y = pos.y+120},
     radius = 101, thickness = 12,
-    from = 0, to = 240,
+    from = 2, to = 238,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
-    warn = {from = 90, color = settings.colors.gaugeWarn},
+    warn = {from = 100/cpuCount, color = settings.colors.gaugeInfo},
+    crit = {from = 90, color = settings.colors.gaugeWarn},
   })
   graph(cr, 'cpu', tonumber(avgCpu), {
     pos = {x = pos.x+163, y = pos.y + 90},
@@ -188,7 +129,6 @@ function updateCpu(config)
   })
 
   -- cpus
-  local cpuCount = getCpuCount()
   if cpuCount > 1 then
     local y, r = pos.y+38, 89
     for i=1,cpuCount,2 do
@@ -208,20 +148,20 @@ function updateCpu(config)
       gauge(cr, tonumber(usage1), {
         pos = {x = pos.x+150, y = pos.y+120},
         radius = r, thickness = 4,
-        from = 0, to = 240,
+        from = 0.5, to = 240,
         background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
         color = settings.colors.gauge,
         alpha = settings.colors.gaugeAlpha,
-        warn = {from = 90, color = settings.colors.gaugeWarn},
+        warn = {from = 50, color = settings.colors.gaugeInfo},
       })
       gauge(cr, tonumber(usage2), {
         pos = {x = pos.x+150, y = pos.y+120},
         radius = r-5, thickness = 4,
-        from = 0, to = 240,
+        from = 0.5, to = 240,
         background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
         color = settings.colors.gauge,
         alpha = settings.colors.gaugeAlpha,
-        warn = {from = 90, color = settings.colors.gaugeWarn},
+        warn = {from = 50, color = settings.colors.gaugeInfo},
       })
       y = y + 12
       r = r - 12
@@ -286,12 +226,12 @@ function updateMemory(config)
   gauge(cr, memUsed + memShared, {
     pos = {x = pos.x+48, y = pos.y+68},
     radius = 60, thickness = 15,
-    from = 180, to = 420,
+    from = 184, to = 416,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
     max = memTotal,
-    warn = {from = memTotal * 0.9, color = settings.colors.gaugeWarn},
+    warn = {from = memTotal * 0.5, color = settings.colors.gaugeInfo},
     crit = {from = memTotal * 0.95, color = settings.colors.gaugeCrit},
     level2 = {
       color = settings.colors.gauge,
@@ -311,7 +251,7 @@ function updateMemory(config)
   gauge(cr, tonumber(swapUsed), {
     pos = {x = pos.x+48, y = pos.y+68},
     radius = 43, thickness = 11,
-    from = 180, to = 420,
+    from = 182, to = 418,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
@@ -403,11 +343,11 @@ function updateDisks(config)
     gauge(cr, tonumber(conky_parse('${fs_used_perc ' .. mount .. '}')), {
         pos = {x = pos.x+210, y = pos.y+60},
         radius = radius, thickness = 7,
-        from = 0, to = 270,
+        from = 0, to = 180,
         background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
         color = settings.colors.gauge,
         alpha = settings.colors.gaugeAlpha,
-        warn = {from = 95, color = settings.colors.gaugeWarn},
+        warn = {from = 85, color = settings.colors.gaugeInfo},
         crit = {from = 98, color = settings.colors.gaugeCrit},
     })
     radius = radius - 12
@@ -449,12 +389,12 @@ function updateNetwork(config)
   gauge(cr, upspeed, {
     pos = {x = pos.x+50, y = pos.y+50},
     radius = 35, thickness = 5,
-    from = 180, to = 420,
+    from = 240, to = 419,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
     max = cache.maxUp,
-    warn = {from = cache.maxUp * .95, color = settings.colors.gaugeWarn},
+    warn = {from = cache.maxUp * .50, color = settings.colors.gaugeInfo},
   })
   graph(cr, 'upload', upspeed, {
     pos = {x = pos.x+35, y = pos.y + 50},
@@ -463,13 +403,22 @@ function updateNetwork(config)
     alpha = 0.9, max = 'auto',
     width = 160, height = 12,
   })
+  path(cr, {
+    pos = {x = pos.x+30, y = y-7},
+    points = {
+        { x = pos.x+35, y = y},
+        { x = pos.x+25, y = y},
+    },
+    fill = { color = upspeed > 0.1 and settings.colors.highlight or settings.colors.default },
+  })
   local totalUp = conky_parse('${totalup ' .. network .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
   local up = humanReadableBytes(upspeed, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local upMax = humanReadableBytes(cache.maxUp, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
-  write(cr, 'Up    ' .. up .. ' / ' .. upMax, {
-    pos = {x = pos.x + 60, y = y},
+  write(cr, up .. ' / ' .. upMax .. ' ' .. totalUp, {
+    pos = {x = pos.x + 195, y = y},
     font = {settings.fonts.default, 10},
     color = settings.colors.default,
+    align = {'right'},
   })
   y = y + 12
 
@@ -477,12 +426,12 @@ function updateNetwork(config)
   gauge(cr, downspeed, {
     pos = {x = pos.x+50, y = pos.y+50},
     radius = 45, thickness = 10,
-    from = 180, to = 420,
+    from = 242, to = 418,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
     max = cache.maxUp,
-    warn = {from = cache.maxUp * .95, color = settings.colors.gaugeWarn},
+    warn = {from = cache.maxUp * .50, color = settings.colors.gaugeInfo},
   })
   graph(cr, 'download', downspeed, {
     pos = {x = pos.x+35, y = pos.y + 53},
@@ -491,36 +440,41 @@ function updateNetwork(config)
     alpha = 0.9, max = 'auto',
     width = 160, height = 12,
   })
+  path(cr, {
+    pos = {x = pos.x+30, y = y},
+    points = {
+        { x = pos.x+35, y = y-7},
+        { x = pos.x+25, y = y-7},
+    },
+    fill = { color = downspeed > 0.1 and settings.colors.highlight or settings.colors.default },
+  })
   local totalDown = conky_parse('${totaldown ' .. network .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
   local down = humanReadableBytes(downspeed, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local downMax = humanReadableBytes(cache.maxDown, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
-  write(cr, 'Down  ' .. down .. ' / ' .. downMax, {
-    pos = {x = pos.x + 60, y = y},
+  write(cr, down .. ' / ' .. downMax .. ' ' .. totalDown, {
+    pos = {x = pos.x + 195, y = y},
     font = {settings.fonts.default, 10},
     color = settings.colors.default,
+    align = {'right'},
   })
   y = y + 12
 
   -- info
   if config.hideInfo == nil or config.hideInfo == false then
-    write(cr, 'Total ' .. totalUp .. ' / ' .. totalDown, {
-      pos = {x = pos.x + 60, y = y},
-      font = {settings.fonts.default, 10},
-      color = settings.colors.default,
-    })
-    y = y + 12
     local localIp = conky_parse('${addr ' .. network .. '}')
     write(cr, 'LAN IP  ' .. localIp:pad(15, ' ', 'STR_PAD_LEFT'), {
-      pos = {x = pos.x + 60, y = y},
+      pos = {x = pos.x + 195, y = y},
       font = {settings.fonts.default, 10},
       color = settings.colors.default,
+      align = {'right'},
     })
     y = y + 12
     local publicIp = conky_parse('${execi 3600 wget -q -O - checkip.dyndns.org | sed -e \'s/[^[:digit:]\|.]//g\'}')
     write(cr, 'WAN IP  ' .. publicIp:pad(15, ' ', 'STR_PAD_LEFT'), {
-      pos = {x = pos.x + 60, y = y},
+      pos = {x = pos.x + 195, y = y},
       font = {settings.fonts.default, 10},
       color = settings.colors.default,
+      align = {'right'},
     })
   end
 end
@@ -572,7 +526,7 @@ function updateLoad(config)
   gauge(cr, tonumber(load1m), {
     pos = {x = pos.x+8, y = pos.y+500},
     radius = 484, thickness = 16,
-    from = 0, to = 35,
+    from = 0.4, to = 35,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
@@ -583,7 +537,7 @@ function updateLoad(config)
   gauge(cr, tonumber(load5m), {
     pos = {x = pos.x+8, y = pos.y+500},
     radius = 470, thickness = 8,
-    from = 0, to = 33,
+    from = 0.1, to = 33,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,

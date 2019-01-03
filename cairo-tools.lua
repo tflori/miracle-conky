@@ -167,6 +167,44 @@ function roundRectangle(cr, def)
 end
 
 --[[
+Draw a path on cr by definition (def)
+
+def = {
+  pos = {x = 10, y = 10},
+  points = { {x = 5, y = 15}, {x = 15, y = 15}, ... }
+  fill = {color = 0x000000, alpha = 0.2},
+  stroke = {width = 2, color = 0x000000, alpha = 0.5}
+}
+]]
+function path(cr, def)
+  cairo_new_sub_path(cr)
+  cairo_move_to(cr, def.pos.x, def.pos.y)
+  for i,point in ipairs(def.points) do
+    cairo_line_to(cr, point.x, point.y)
+  end
+  cairo_close_path(cr)
+
+  if def.fill then
+    cairo_set_source_rgba(
+      cr,
+      rgbToRgba(def.fill.color, def.fill.alpha or 1)
+    )
+      cairo_fill_preserve(cr)
+  end
+
+  if def.stroke then
+    cairo_set_source_rgba(
+      cr,
+      rgbToRgba(def.stroke.color, def.stroke.alpha or 1)
+    )
+    cairo_set_line_width(cr, def.stroke.width)
+    cairo_stroke_preserve(cr)
+  end
+
+  cairo_new_path(cr)
+end
+
+--[[
 Draw a ring on cr by definition (def)
 
 def = {
