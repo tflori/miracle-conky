@@ -323,8 +323,25 @@ function updateDisks(config)
     end
   end
 
+  local sort, i = {}, 0
+  if not config.sort or config.sort == 'size' then
+    local sizes, j = {}, 0
+    for name,mount in pairs(disks) do
+      j = j + 1
+      sizes[j] = {tonumber(os.capture('df -P ' .. mount .. '|tail -1|awk \'{print $2}\'')), name}
+    end
+    table.sort(sizes, function (a, b) return a[1] > b[1]; end)
+    for _,size in pairs(sizes) do
+      i = i + 1
+      sort[i] = size[2]
+    end
+  elseif type(config.sort) == "table" then
+    sort = config.sort
+  end
+
   local radius, y, i = 56.5, pos.y + 8, 0
-  for name,mount in pairs(disks) do
+  for _,name in pairs(sort) do
+    local mount = disks[name]
     i = i + 1
     if i > 4 then break end
     local used = conky_parse('${fs_used ' .. mount .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
