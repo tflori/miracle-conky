@@ -322,7 +322,7 @@ function graph(cr, key, currentValue, def)
   end
 
   -- remove old history
-  if table.getn(graphHistory[key]) > count then table.remove(graphHistory[key]) end
+  if #graphHistory[key] > count then table.remove(graphHistory[key]) end
 
   -- get the current max
   if max == 'auto' then

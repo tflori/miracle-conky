@@ -469,7 +469,7 @@ function updateNetwork(config)
       align = {'right'},
     })
     y = y + 12
-    local publicIp = conky_parse('${execi 3600 wget -q -O - checkip.dyndns.org | sed -e \'s/[^[:digit:]\|.]//g\'}')
+    local publicIp = conky_parse('${execi 3600 wget -q -O - checkip.dyndns.org | sed -e \'s/[^[:digit:]\\|.]//g\'}')
     write(cr, 'WAN IP  ' .. publicIp:pad(15, ' ', 'STR_PAD_LEFT'), {
       pos = {x = pos.x + 195, y = y},
       font = {settings.fonts.default, 10},

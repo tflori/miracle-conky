@@ -55,7 +55,7 @@ end
 
 function string:titlecase()
     local str, result = self, ''
-    for word in string.gfind(str, "%S+") do
+    for word in string.gmatch(str, "%S+") do
         local first = string.sub(word,1,1)
         result = (result .. string.upper(first) ..
             string.lower(string.sub(word,2)) .. ' ')
