@@ -40,7 +40,7 @@ conky.config = {
 	gap_x = 32,
 	gap_y = 32,
 
-  lua_load = 'miracle.lua',
+    lua_load = 'miracle.lua',
 	lua_draw_hook_pre = 'conky_main',
 }
 
@@ -59,6 +59,8 @@ conky.miracle = {
 			hide = false,
 			pos = {x = 0, y = 0},
 			top = 3,
+			-- hwmon = 0,
+			-- tempSensor = 1,
 		},
 		memory = {
 			hide = false,
