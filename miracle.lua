@@ -97,7 +97,7 @@ function updateCpu(config)
   })
   gauge(cr, tonumber(temperature), {
     pos = {x = pos.x+150, y = pos.y+120},
-    radius = 114, thickness = 3,
+    radius = 112, thickness = 3,
     from = 0, to = 240,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -116,7 +116,7 @@ function updateCpu(config)
   })
   gauge(cr, tonumber(avgCpu), {
     pos = {x = pos.x+150, y = pos.y+120},
-    radius = 101, thickness = 12,
+    radius = 100, thickness = 11,
     from = 2, to = 238,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -134,13 +134,41 @@ function updateCpu(config)
   -- cpus
   if cpuCount > 1 then
     local y, r = pos.y+38, 89
-    for i=1,cpuCount,2 do
-      local usage1 = conky_parse('${cpu cpu' .. i .. '}')
-      local usage2 = conky_parse('${cpu cpu' .. i+1 .. '}')
+    local perRow = math.ceil(cpuCount/4)
+    local minCoresPerRow = config.minCoresPerRow or 2
+    if perRow < minCoresPerRow then
+        perRow = minCoresPerRow
+    end
+    local s = ''
+    for i=1,cpuCount,1 do
+      s = s .. '${cpu cpu' .. i .. '},'
+    end
+    local cpuUsage = conky_parse(s):split(',')
+    for i=1,cpuCount,perRow do
+      local usages = {}
+      local sum = 0
+      local j
+      for j=i,i+perRow-1,1 do
+        if j > cpuCount then
+          break
+        end
+        table.insert(usages, tonumber(cpuUsage[j]))
+        sum = sum + cpuUsage[j]
+      end
+
+      --local max = tostring(math.max(table.unpack(usages)))
+      --local min = tostring(math.min(table.unpack(usages)))
+      local avg = round(sum/perRow,1)
+
+      local text
+      if perRow == 1 then
+        text = avg .. '% on Core ' .. i
+      else
+        text = avg .. '% on Cores ' .. (i .. '-' .. i+perRow-1):pad(5, ' ', 'STR_PAD_LEFT')
+      end
       write(
         cr,
-        'CPU ' .. i .. ' ' .. usage1:pad(3, ' ', 'STR_PAD_LEFT') .. '% | ' ..
-        'CPU ' .. (i+1) .. ' ' .. usage2:pad(3, ' ', 'STR_PAD_LEFT') ..'%',
+        text,
         {
           pos = {x = pos.x+140, y = y},
           font = {settings.fonts.default, 10},
@@ -148,24 +176,28 @@ function updateCpu(config)
           align = {'right'},
         }
       )
-      gauge(cr, tonumber(usage1), {
-        pos = {x = pos.x+150, y = pos.y+120},
-        radius = r, thickness = 4,
-        from = 0.5, to = 240,
-        background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
-        color = settings.colors.gauge,
-        alpha = settings.colors.gaugeAlpha,
-        warn = {from = 50, color = settings.colors.gaugeInfo},
-      })
-      gauge(cr, tonumber(usage2), {
-        pos = {x = pos.x+150, y = pos.y+120},
-        radius = r-5, thickness = 4,
-        from = 0.5, to = 240,
-        background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
-        color = settings.colors.gauge,
-        alpha = settings.colors.gaugeAlpha,
-        warn = {from = 50, color = settings.colors.gaugeInfo},
-      })
+
+      local thickness = math.floor(12 / perRow)                   -- 4 = 3 / 6 = 2 / 8 = 1   / 12 = 1 / 16 = 0
+      local rDec = thickness + (12 - thickness * perRow) / perRow -- 4 = 3 / 6 = 2 / 8 = 1.5 / 12 = 0 / 16 = 0.75
+      if thickness == 0 then
+        thickness = 1
+      elseif thickness > 2 then
+        rDec = thickness
+        thickness = thickness - 1
+      end
+      local usage
+      for j,usage in ipairs(usages) do
+        gauge(cr, usage, {
+          pos = {x = pos.x+150, y = pos.y+120},
+          radius = r - rDec * (j-1), thickness = thickness,
+          from = 0, to = 240,
+          background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
+          color = settings.colors.gauge,
+          alpha = settings.colors.gaugeAlpha,
+          warn = {from = 50, color = settings.colors.gaugeInfo},
+        })
+      end
+
       y = y + 12
       r = r - 12
     end

@@ -53,7 +53,7 @@ conky.miracle = {
 			pos = {x = width, y = 0},
 			showDate = true,
 			timeFormat = '%H:%M',
-			dateFormat = '%A, %e. %B'
+			dateFormat = '%A, %e. %B',
 		},
 		cpu = {
 			hide = false,
@@ -61,6 +61,7 @@ conky.miracle = {
 			top = 3,
 			-- hwmon = 0,
 			-- tempSensor = 1,
+			-- minCoresPerRow = 2,
 		},
 		memory = {
 			hide = false,
