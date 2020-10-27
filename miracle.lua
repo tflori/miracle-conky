@@ -65,7 +65,9 @@ end
 function updateCpu(config)
   local pos = config.pos or {x = 0, y = 0}
   local freq = conky_parse('${freq_g cpu0}')
-  local temperature = conky_parse('${hwmon ' .. getCoreHwmon() .. ' temp 1}')
+  local hwmon = config.hwmon or getCoreHwmon()
+  local tempSensor = config.tempSensor or 1
+  local temperature = conky_parse('${hwmon ' .. hwmon .. ' temp '  .. tempSensor .. '}')
   local avgCpu = conky_parse('${cpu cpu0}')
   local cpuCount = getCpuCount()
   local warnTemp, critTemp, maxTemp = 60, 80, 110
