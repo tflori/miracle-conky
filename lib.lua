@@ -20,7 +20,7 @@ function string:split(delimiter)
   local text = self
   local list = {}
   local pos = 1
-  if string.find("", delimiter, 1) then -- this would result in endless loops
+  if delimiter == nil or string.find("", delimiter, 1) then -- this would result in endless loops
     error("delimiter matches empty string!")
   end
 
