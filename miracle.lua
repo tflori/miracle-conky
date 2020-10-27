@@ -206,15 +206,22 @@ function updateCpu(config)
   -- top
   local y = pos.y + 115
   if config.top and config.top > 0 then
-    for i=1,config.top do
-      if cache.top == nil or cache.top.name[i] == nil or updates % 4 == 0 then
-        if cache.top == nil then
-          cache.top = { name = {}, perc = {}}
-        end
-        cache.top.name[i] = conky_parse('${top name ' .. i .. '}'):pad(20, ' ')
-        cache.top.perc[i] = conky_parse('${top cpu ' .. i .. '}'):pad(6, ' ', 'STR_PAD_LEFT') .. '%'
-      end
-      write(cr, cache.top.name[i] .. cache.top.perc[i], {
+    if cache.top == nil or updates % 4 == 0 then
+      local topCpu = os.capture('LC_ALL=C ps -eo comm,%cpu --sort=-%cpu | tail -n +2'):split('\n')
+      topCpu = table.map(topCpu, function (row)
+        local cmd, cpu = row:match('^(.-) +([%d.]+)$')
+        return {
+          cmd = cmd,
+          cpu = cpu,
+        }
+      end)
+
+      cache.top = {}
+      table.move(topCpu, 1, config.top, 1, cache.top)
+    end
+
+    for _, data in pairs(cache.top) do
+      write(cr, data.cmd:pad(20, ' ') .. data.cpu:pad(6, ' ', 'STR_PAD_LEFT') .. '%', {
         pos = { x = pos.x+2, y = y },
         font = {settings.fonts.default, 10},
         color = settings.colors.default,
@@ -305,15 +312,39 @@ function updateMemory(config)
 
   -- top
   if config.top and config.top > 0 then
-    for i=1,config.top do
-      if cache.topMem == nil or cache.topMem.name[i] == nil or updates % 4 == 0 then
-        if cache.topMem == nil then
-          cache.topMem = { name = {}, perc = {}}
-        end
-        cache.topMem.name[i] = conky_parse('${top_mem name ' .. i .. '}'):pad(20, ' ')
-        cache.topMem.perc[i] = conky_parse('${top_mem mem ' .. i .. '}'):pad(6, ' ', 'STR_PAD_LEFT') .. '%'
-      end
-      write(cr, cache.topMem.name[i] .. cache.topMem.perc[i], {
+    if cache.topMem == nil or updates % 4 == 0 then
+      local topMem = os.capture('LC_ALL=C ps -eo comm,%mem --sort=-%mem | tail -n +2'):split('\n')
+      topMem = table.map(topMem, function (row)
+        local cmd, mem = row:match('^(.-) +([%d.]+)$')
+        return {
+          cmd = cmd,
+          mem = tonumber(mem),
+        }
+      end)
+      topMem = table.group(
+        topMem,
+        function (row) return row.cmd end,
+        {
+          sum = function (sum, row)
+            if sum == nil then
+              return row.mem
+            end
+            return sum + row.mem
+          end,
+        }
+      )
+      topMem = table.values(topMem)
+
+
+      table.sort(topMem, function (row1, row2)
+        return tonumber(row1.sum) > tonumber(row2.sum)
+      end)
+      cache.topMem = {}
+      table.move(topMem, 1, config.top, 1, cache.topMem)
+    end
+
+    for _, data in pairs(cache.topMem) do
+      write(cr, data.key:pad(20, ' ') .. tostring(data.sum):pad(6, ' ', 'STR_PAD_LEFT') .. '%', {
         pos = { x = pos.x+200, y = y },
         font = {settings.fonts.default, 10},
         color = settings.colors.default,
