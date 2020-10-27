@@ -23,25 +23,26 @@ function conky_main()
 
   updates=tonumber(conky_parse('${updates}'))
 
-  -- helper for design
-  -- roundRectangle(cr, {
-  --   pos = {x = 0.5, y = 0.5},
-  --   size = {width = width-1, height = height-1},
-  --   stroke = {width = 1, color = 0x000000, alpha = 0.5},
-  --   cornerRadius = 0,
-  -- })
-
+  local start = mtime()
   for widget,config in pairs(settings.widgets) do
-    if config.hide == nil or config.hide == false then
-      if widget == 'clock'   then updateClock(config)   end
-      if widget == 'cpu'     then updateCpu(config)     end
-      if widget == 'memory'  then updateMemory(config)  end
-      if widget == 'disks'   then updateDisks(config)   end
-      if widget == 'network' then updateNetwork(config) end
-      if widget == 'battery' then updateBattery(config) end
-      if widget == 'load'    then updateLoad(config)    end
-    end
+    updateWidget(widget, config)
   end
+  print(os.date('%c') .. ' updated in ' .. string.format('%.2f seconds', mtime() - start))
+end
+
+function updateWidget(widget, config)
+  if config.hide ~= nil and config.hide == true then
+      return
+  end
+  local start = mtime()
+  if widget == 'clock'   then updateClock(config)   end
+  if widget == 'cpu'     then updateCpu(config)     end
+  if widget == 'memory'  then updateMemory(config)  end
+  if widget == 'disks'   then updateDisks(config)   end
+  if widget == 'network' then updateNetwork(config) end
+  if widget == 'battery' then updateBattery(config) end
+  if widget == 'load'    then updateLoad(config)    end
+  --print(os.date('%c') .. ' updated ' .. widget .. ' in ' .. string.format('%.2f seconds', mtime() - start))
 end
 
 function updateClock(config)
