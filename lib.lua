@@ -1,3 +1,5 @@
+local socket = require 'socket'
+
 function os.capture(cmd)
   local f = assert(io.popen(cmd, 'r'))
   local s = assert(f:read('*a'))
@@ -8,6 +10,10 @@ end
 function io.fileExists(name)
    local f=io.open(name,"r")
    if f~=nil then io.close(f) return true else return false end
+end
+
+function mtime()
+  return socket.gettime()
 end
 
 function string:split(delimiter)
@@ -85,6 +91,41 @@ function table.contains(table, element)
     end
   end
   return false
+end
+
+function table.map(table, f)
+  local result = {}
+  for key, value in pairs(table) do
+    result[key] = f(value);
+  end
+  return result
+end
+
+function table.group(table, by, cols)
+  local result = {}
+  for _, value in pairs(table) do
+    key = by(value);
+    if key ~= nil then
+      if result[key] == nil then
+        result[key] = {key = key}
+        --for col, f in cols do
+          --result[key][col] = nil
+        --end
+      end
+      for col, f in pairs(cols) do
+        result[key][col] = f(result[key][col], value)
+      end
+    end
+  end
+  return result
+end
+
+function table.values(table)
+  local result = {}
+  for _, value in pairs(table) do
+    result[#result+1] = value
+  end
+  return result
 end
 
 local units = {'B', 'KiB', 'MiB', 'GiB', 'TiB'}
