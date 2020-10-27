@@ -117,8 +117,8 @@ function roundRectangle(cr, def)
     pos.x + size.width - radius,
     pos.y + radius,
     radius,
-    -90 * degrees,
-    0 * degrees
+    270 * degrees,
+    360 * degrees
   )
   cairo_arc(
     cr,
@@ -220,9 +220,14 @@ def = {
 function ring(cr, def)
   local pos, radius, thickness, from, to, color, alpha =
     def.pos, def.radius, def.thickness, def.from, def.to, def.color, def.alpha
+  local double degrees = math.pi / 180.0;
 
-  from = from * (2*math.pi/360) - math.pi/2
-  to = to * (2*math.pi/360) - math.pi/2
+  from = from * degrees - math.pi/2
+  to = to * degrees - math.pi/2
+
+   -- prevent errors with nan
+  if tostring(to) == '-nan' then return end
+  if tostring(to) == 'nan' then return end
 
   cairo_set_line_width(cr, thickness)
   cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND)
