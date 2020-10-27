@@ -159,6 +159,10 @@ end
 
 function getCoreHwmon()
   local output = os.capture('ls -l /sys/class/hwmon|grep coretemp')
+  if output == '' then
+    return 0
+  end
+
   return tonumber(output:match(' hwmon%d '):sub(-2, -1));
 end
 
