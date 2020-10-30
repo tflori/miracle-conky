@@ -183,7 +183,7 @@ function updateCpu(config)
         thickness = 1
       elseif thickness > 2 then
         rDec = thickness
-        thickness = thickness - 1
+        thickness = math.ceil(thickness / 2 )
       end
       local usage
       for j,usage in ipairs(usages) do
