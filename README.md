@@ -24,6 +24,7 @@ Clone or download this repository and execute the `start.sh`.
 
 ## Screenshots
 
+[![16cores](examples/16cores.png)](examples/16cores.png)  
 [![updated](examples/updated.png)](examples/updated.png)  
 [![desktop](examples/desktop.png)](examples/desktop.png)  
 [![stressed](examples/stressed.png)](examples/stressed.png)  
