@@ -128,6 +128,16 @@ function table.values(table)
   return result
 end
 
+function table.filter(table, f)
+  local result = {}
+  for key, value in pairs(table) do
+    if f(value, key) then
+      result[key] = value
+    end
+  end
+  return result
+end
+
 local units = {'B', 'KiB', 'MiB', 'GiB', 'TiB'}
 function humanReadableBytes(bytes, current)
   if current == nil then current = 'B' end
