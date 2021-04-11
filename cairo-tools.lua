@@ -55,7 +55,7 @@ function write(cr, text, def)
   cairo_select_font_face(cr, font, fontSlant, fontWeight)
   cairo_set_font_size(cr, fontSize)
 
-  cairo_set_source_rgba(cr, rgbToRgba( def.color or 0xffffff, def.alpha or 1))
+  cairo_set_source_rgba(cr, rgbToRgba(def.color or 0xffffff, def.alpha or 1))
 
   local x = def.pos.x
   local y = def.pos.y
@@ -85,8 +85,10 @@ function write(cr, text, def)
   cairo_new_path(cr)
 
   local boundingBox = {
-    x = x + te.x_bearing,
-    y = y + te.y_bearing,
+    x = x,
+    y = y,
+    left = x + te.x_bearing,
+    top = y + te.y_bearing,
     width = te.width,
     height = te.height,
     right = x + te.x_bearing + te.width,
