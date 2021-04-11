@@ -144,6 +144,7 @@ function updateCpu(config)
       s = s .. '${cpu cpu' .. i .. '},'
     end
     local cpuUsage = conky_parse(s):split(',')
+    local leftPos = nil;
     for i=1,cpuCount,perRow do
       local usages = {}
       local sum = 0
@@ -164,18 +165,21 @@ function updateCpu(config)
       if perRow == 1 then
         text = avg .. '% on Core ' .. i
       else
-        text = avg .. '% on Cores ' .. (i .. '-' .. i+perRow-1):pad(5, ' ', 'STR_PAD_LEFT')
+        text = ('' .. avg .. '%'):pad(7, ' ', 'STR_PAD_LEFT') ..
+          ' on Cores ' .. (i .. '-' .. i+perRow-1):pad(5, ' ', 'STR_PAD_LEFT')
       end
-      write(
+
+      local bb = write(
         cr,
         text,
         {
-          pos = {x = pos.x+140, y = y},
+          pos = {x = (leftPos and leftPos or pos.x+140), y = y},
           font = {settings.fonts.default, 10},
           color = settings.colors.default,
-          align = {'right'},
+          align = {(leftPos and 'left' or 'right')},
         }
       )
+      leftPos = bb.x
 
       local thickness = math.floor(12 / perRow)                   -- 4 = 3 / 6 = 2 / 8 = 1   / 12 = 1 / 16 = 0
       local rDec = thickness + (12 - thickness * perRow) / perRow -- 4 = 3 / 6 = 2 / 8 = 1.5 / 12 = 0 / 16 = 0.75
@@ -313,7 +317,7 @@ function updateMemory(config)
   -- top
   if config.top and config.top > 0 then
     if cache.topMem == nil or updates % 4 == 0 then
-      local topMem = os.capture('LC_ALL=C ps -eo comm,%mem --sort=-%mem | tail -n +2'):split('\n')
+      local topMem = os.capture('LC_ALL=C ps -eo comm,%mem --sort=-%mem --no-headers|head -40'):split('\n')
       topMem = table.map(topMem, function (row)
         local cmd, mem = row:match('^(.-) +([%d.]+)$')
         return {
