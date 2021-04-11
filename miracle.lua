@@ -211,27 +211,54 @@ function updateCpu(config)
   local y = pos.y + 115
   if config.top and config.top > 0 then
     if cache.top == nil or updates % 4 == 0 then
-      local topCpu = os.capture('LC_ALL=C ps -eo comm,%cpu --sort=-%cpu | tail -n +2'):split('\n')
+      -- local topCpu = os.capture('LC_ALL=C ps -eo comm,%cpu --sort=-%cpu --no-headers|head -4'):split('\n')
+      local topCpu = os.capture(
+        'LC_ALL=C top -w 512 -bn 1 -d 1 -o %CPU|grep -A40 "PID USER"|tail -40|' ..
+        'tr -s " "|cut -d " " -f10,13-'
+      ):split('\n')
       topCpu = table.map(topCpu, function (row)
-        local cmd, cpu = row:match('^(.-) +([%d.]+)$')
+        local cpu, cmd = row:match('^([%d.]+) +(.-)$')
+        if cmd == nil then return {cmd = '', cpu = 0} end
         return {
-          cmd = cmd,
+          cmd = string.sub(cmd, 1, 20),
           cpu = cpu,
         }
+      end)
+      topCpu = table.group(
+        topCpu,
+        function (row) return row.cmd end,
+        {
+          sum = function (sum, row)
+            if sum == nil then
+              return tonumber(row.cpu)
+            end
+            return sum + tonumber(row.cpu)
+          end,
+        }
+      )
+
+      topCpu = table.values(table.filter(topCpu, function (row)
+        print(row.sum)
+        return row.sum > 0.0
+      end))
+      table.sort(topCpu, function (row1, row2)
+        return row1.sum > row2.sum
       end)
 
       cache.top = {}
       table.move(topCpu, 1, config.top, 1, cache.top)
     end
 
+    local firstRow = y;
     for _, data in pairs(cache.top) do
-      write(cr, data.cmd:pad(20, ' ') .. data.cpu:pad(6, ' ', 'STR_PAD_LEFT') .. '%', {
+      write(cr, data.key:pad(20) .. tostring(round(data.sum/cpuCount, 1)):pad(7, ' ', 'STR_PAD_LEFT') .. '%', {
         pos = { x = pos.x+2, y = y },
         font = {settings.fonts.default, 10},
         color = settings.colors.default,
       });
       y = y + 12
     end
+    y = firstRow + 12 * config.top
   end
 
   -- label
