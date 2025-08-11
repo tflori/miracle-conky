@@ -168,12 +168,12 @@ function interp(s, tab)
 end
 
 function getCoreHwmon()
-  local output = os.capture('ls -l /sys/class/hwmon|grep coretemp')
+  local output = os.capture('grep -lE \'k10temp|coretemp\' /sys/class/hwmon/hwmon*/name | xargs -r dirname')
   if output == '' then
     return 0
   end
 
-  return tonumber(output:match(' hwmon%d '):sub(-2, -1));
+  return tonumber(output:match('/hwmon%d'):sub(-1))
 end
 
 function getCurrentNetwork()
