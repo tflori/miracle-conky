@@ -1,4 +1,9 @@
-local width, height = 480, 450
+local scaling = 1
+function scale(n)
+    return math.floor(n * scaling)
+end
+
+local width, height, dpi = scale(480), scale(450), 96
 local default, primary, warn, crit = 0xffffff, 0x00bfa5, 0xfbc02d, 0xdd2c00
 
 conky.config = {
@@ -19,22 +24,20 @@ conky.config = {
 
 	temperature_unit = 'celsius',
 
-  -- XFCE lightdm and gnome backround issue
+    -- Window specifications
 	own_window_argb_visual = true,
 	own_window_argb_value = 0,
-
--- Window specifications #
 	own_window_class = 'Conky',
 	own_window = true,
-	own_window_type = 'desktop',
+	own_window_type = 'desktop', -- for kde use dock and add window rules
 	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
-	own_window_transparent = false,
+	-- own_window_transparent = false, -- I don't know if this helps
 
 	border_inner_margin = 0,
 	border_outer_margin = 0,
 
-	minimum_width = width,
-	minimum_height = height,
+    minimum_width = math.ceil(width / dpi * 96),
+    minimum_height = math.ceil(height / dpi * 96),
 
 	alignment = 'bottom_left',
 	gap_x = 32,
@@ -47,6 +50,7 @@ conky.config = {
 conky.text = [[]]
 
 conky.miracle = {
+    scaling = scaling,
 	widgets = {
 		clock = {
 			hide = false,
@@ -65,29 +69,33 @@ conky.miracle = {
 		},
 		memory = {
 			hide = false,
-			pos = {x = width-205, y = 150},
+            pos = {x = width-scale(201), y = scale(150)},
 			top = 3,
 		},
 		disks = {
 			hide = false,
-			pos = {x = 0, y = 250},
+			pos = {x = 0, y = scale(250)},
 			-- disks = {Home = '/home', Root = '/'}
 			disks = 'auto',
 			exclude = {'/var/lib/docker', 'fast.workspace', '/boot/efi'},
 			include = {NAS = '/media/nas/media'}
+			-- sort = {NAS, Home, Root}
 	 },
 	 network = {
 		 hide = false,
-		 pos = {x = width - 210, y = 315},
+		 pos = {x = width - scale(196), y = scale(315)},
 		 network = 'auto', -- network name 'eth0'
 	 },
 	 battery = {
 		 hide = false,
-		 pos = {x = width - 182, y = 88},
+		 pos = {x = width - scale(182), y = scale(88)},
 	 },
 	 load = {
 		 hide = false,
-		 pos = {x = 0, y = 340},
+           pos = {x = 0, y = scale(340)},
+           --max = 2,
+           --warn = 2,
+           --crit = 4,
 		},
 	},
 	fonts = {

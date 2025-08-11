@@ -47,17 +47,21 @@ function updateWidget(widget, config)
   --print(os.date('%c') .. ' updated ' .. widget .. ' in ' .. string.format('%.2f seconds', mtime() - start))
 end
 
+function scale(n)
+  return math.floor(n * (settings.scaling or 1));
+end
+
 function updateClock(config)
   local bb = write(cr, os.date(config.timeFormat or '%H:%M'), {
     pos = config.pos or {x = width, y = 0},
-    font = {settings.fonts.significant, 64},
+    font = {settings.fonts.significant, scale(64)},
     color = settings.colors.default,
     align = {'right', 'top'},
   })
   if config.showDate == nil or config.showDate then
     write(cr, os.date(config.dateFormat or '%A, %b %e'), {
-      pos = {x = config.pos.x or width, y = bb.bottom + 4},
-      font = {settings.fonts.significant, 18, 1},
+      pos = {x = config.pos.x or width, y = bb.bottom + scale(4)},
+      font = {settings.fonts.significant, scale(18), 1},
       color = settings.colors.highlight,
       align = {'right', 'top'},
     })
@@ -85,21 +89,21 @@ function updateCpu(config)
 
   -- frequency
   write(cr, freq .. ' Ghz', {
-    pos = {x = pos.x+50, y = pos.y+10},
-    font = {settings.fonts.default, 10},
+    pos = {x = pos.x+scale(50), y = pos.y+scale(10)},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
   })
 
   -- temperature
   write(cr, temperature .. ' °C', {
-    pos = {x = pos.x+140, y = pos.y+10},
-    font = {settings.fonts.default, 10},
+    pos = {x = pos.x+scale(140), y = pos.y+scale(10)},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
     align = {'right'},
   })
   gauge(cr, tonumber(temperature), {
-    pos = {x = pos.x+150, y = pos.y+120},
-    radius = 112, thickness = 3,
+    pos = {x = pos.x+scale(150), y = pos.y+scale(120)},
+    radius = scale(112), thickness = scale(3),
     from = 0, to = 240,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -111,14 +115,14 @@ function updateCpu(config)
 
   -- average cpu
   write(cr, 'Average CPU usage ' .. avgCpu:pad(3, ' ', 'STR_PAD_LEFT') .. '%', {
-    pos = {x = pos.x+140, y = pos.y+24},
-    font = {settings.fonts.default, 10},
+    pos = {x = pos.x+scale(140), y = pos.y+scale(24)},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
     align = {'right'},
   })
   gauge(cr, tonumber(avgCpu), {
-    pos = {x = pos.x+150, y = pos.y+120},
-    radius = 100, thickness = 11,
+    pos = {x = pos.x+scale(150), y = pos.y+scale(120)},
+    radius = scale(100), thickness = scale(11),
     from = 2, to = 238,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -127,15 +131,15 @@ function updateCpu(config)
     crit = {from = 90, color = settings.colors.gaugeWarn},
   })
   graph(cr, 'cpu', tonumber(avgCpu), {
-    pos = {x = pos.x+163, y = pos.y + 90},
+    pos = {x = pos.x+scale(163), y = pos.y + scale(90)},
     direction = 'left', amplitude = 'center',
     color = settings.colors.gauge,
-    alpha = 0.9, width = 163, height = 20,
+    alpha = 0.9, width = scale(163), height = scale(20),
   })
 
   -- cpus
   if cpuCount > 1 then
-    local y, r = pos.y+38, 89
+    local y, r = pos.y+scale(38), scale(89)
     local perRow = math.ceil(cpuCount/4)
     local minCoresPerRow = config.minCoresPerRow or 2
     if perRow < minCoresPerRow then
@@ -175,16 +179,16 @@ function updateCpu(config)
         cr,
         text,
         {
-          pos = {x = (leftPos and leftPos or pos.x+140), y = y},
-          font = {settings.fonts.default, 10},
+          pos = {x = (leftPos and leftPos or pos.x+scale(140)), y = y},
+          font = {settings.fonts.default, scale(10)},
           color = settings.colors.default,
           align = {(leftPos and 'left' or 'right')},
         }
       )
       leftPos = bb.x
 
-      local thickness = math.floor(12 / perRow)                   -- 4 = 3 / 6 = 2 / 8 = 1   / 12 = 1 / 16 = 0
-      local rDec = thickness + (12 - thickness * perRow) / perRow -- 4 = 3 / 6 = 2 / 8 = 1.5 / 12 = 0 / 16 = 0.75
+      local thickness = math.floor(scale(12) / perRow)                   -- 4 = 3 / 6 = 2 / 8 = 1   / 12 = 1 / 16 = 0
+      local rDec = thickness + (scale(12) - thickness * perRow) / perRow -- 4 = 3 / 6 = 2 / 8 = 1.5 / 12 = 0 / 16 = 0.75
       if thickness == 0 then
         thickness = 1
       elseif thickness > 2 then
@@ -194,7 +198,7 @@ function updateCpu(config)
       local usage
       for j,usage in ipairs(usages) do
         gauge(cr, usage, {
-          pos = {x = pos.x+150, y = pos.y+120},
+          pos = {x = pos.x+scale(150), y = pos.y+scale(120)},
           radius = r - rDec * (j-1), thickness = thickness,
           from = 0, to = 240,
           background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
@@ -204,13 +208,13 @@ function updateCpu(config)
         })
       end
 
-      y = y + 12
-      r = r - 12
+      y = y + scale(12)
+      r = r - scale(12)
     end
   end
 
   -- top
-  local y = pos.y + 115
+  local y = pos.y + scale(115)
   if config.top and config.top > 0 then
     if cache.top == nil or updates % 4 == 0 then
       -- local topCpu = os.capture('LC_ALL=C ps -eo comm,%cpu --sort=-%cpu --no-headers|head -4'):split('\n')
@@ -240,7 +244,6 @@ function updateCpu(config)
       )
 
       topCpu = table.values(table.filter(topCpu, function (row)
-        print(row.sum)
         return row.sum > 0.0
       end))
       table.sort(topCpu, function (row1, row2)
@@ -255,52 +258,67 @@ function updateCpu(config)
     for _, data in pairs(cache.top) do
       write(cr, data.key:pad(20) .. tostring(round(data.sum/cpuCount, 1)):pad(7, ' ', 'STR_PAD_LEFT') .. '%', {
         pos = { x = pos.x+2, y = y },
-        font = {settings.fonts.default, 10},
+        font = {settings.fonts.default, scale(10)},
         color = settings.colors.default,
       });
-      y = y + 12
+      y = y + scale(12)
     end
-    y = firstRow + 12 * config.top
+    y = firstRow + scale(12) * config.top
   end
+
+  -- cpu info
+  --write(cr, 'AMD Ryzen 7 9700X', {
+  --    pos = {x = pos.x, y = y},
+  --    font = {settings.fonts.default, scale(10)},
+  --    color = settings.colors.default,
+  --    align = {'left', 'top'},
+  --})
+  --y = y + scale(10+4);
 
   -- label
   write(cr, 'CPU', {
     pos = {x = pos.x+2, y = y},
-    font = {settings.fonts.significant, 24, 0},
+    font = {settings.fonts.significant, scale(24), 0},
     color = settings.colors.highlight,
     align = {'left', 'top'},
   })
 end
 
 function updateMemory(config)
-  local pos = config.pos or {x = width-205, y = 150}
+  local pos = config.pos or {x = width-scale(205), y = scale(150)}
   local free = os.capture('LC_ALL=C free -m'):split('\n')
   local memTotal, memUsed, memFree, memShared, memBuffers, memAvailable =
     free[2]:match('(%d+) +(%d+) +(%d+) +(%d+) +(%d+) +(%d+)')
   local swapTotal, swapUsed, swapFree = free[3]:match('(%d+) +(%d+) +(%d+)')
 
   -- label
-  local y = pos.y + 20
+  local y = pos.y + scale(20)
   write(cr, 'Memory', {
-    pos = {x = pos.x+200, y = y},
-    font = {settings.fonts.significant, 24, 0},
+    pos = {x = pos.x+scale(200), y = y},
+    font = {settings.fonts.significant, scale(24), 0},
     color = settings.colors.highlight,
     align = {'right', 'top'},
   })
-  y = y + 50
+  y = y + scale(50)
 
 
   -- memory
   local used = humanReadableBytes(memUsed + memShared, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local total = humanReadableBytes(memTotal + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
-  write(cr, 'RAM    ' .. used .. ' / ' .. total, {
-    pos = {x = pos.x+58, y = pos.y+131},
-    font = {settings.fonts.default, 10},
+  write(cr, 'RAM', {
+    pos = {x = pos.x+scale(58), y = pos.y+scale(131)},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
   })
+  write(cr, used .. ' / ' .. total, {
+    pos = {x = pos.x+scale(200), y = pos.y+scale(131)},
+    font = {settings.fonts.default, scale(10)},
+    color = settings.colors.default,
+    align = {'right', 'center'},
+  })
   gauge(cr, memUsed + memShared, {
-    pos = {x = pos.x+48, y = pos.y+68},
-    radius = 60, thickness = 15,
+    pos = {x = pos.x+scale(48), y = pos.y+scale(68)},
+    radius = scale(60), thickness = scale(15),
     from = 184, to = 416,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -318,14 +336,20 @@ function updateMemory(config)
   -- swap
   local used = humanReadableBytes(swapUsed + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local total = humanReadableBytes(swapTotal + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
-  write(cr, 'Swap   ' .. used .. ' / ' .. total, {
-    pos = {x = pos.x+58, y = pos.y+115},
-    font = {settings.fonts.default, 10},
+  write(cr, 'Swap', {
+    pos = {x = pos.x+scale(58), y = pos.y+scale(115)},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
   })
+  write(cr, used .. ' / ' .. total, {
+    pos = {x = pos.x+scale(200), y = pos.y+scale(115)},
+    font = {settings.fonts.default, scale(10)},
+    color = settings.colors.default,
+    align = {'right', 'center'},
+  })
   gauge(cr, tonumber(swapUsed), {
-    pos = {x = pos.x+48, y = pos.y+68},
-    radius = 43, thickness = 11,
+    pos = {x = pos.x+scale(48), y = pos.y+scale(68)},
+    radius = scale(43), thickness = scale(11),
     from = 182, to = 418,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -337,10 +361,16 @@ function updateMemory(config)
 
   -- caches
   local buffer = humanReadableBytes(memBuffers + 0, 'MiB'):pad(7, ' ', 'STR_PAD_LEFT')
-  write(cr, 'Cache            ' .. buffer, {
-    pos = {x = pos.x+58, y = pos.y+142},
-    font = {settings.fonts.default, 10},
-    color = settings.colors.default, alpha = 0.5,
+  write(cr, 'Cache', {
+    pos = {x = pos.x+scale(58), y = pos.y+scale(142)},
+    font = {settings.fonts.default, scale(10)},
+    color = settings.colors.default,
+  })
+  write(cr, buffer, {
+    pos = {x = pos.x+scale(200), y = pos.y+scale(142)},
+    font = {settings.fonts.default, scale(10)},
+    color = settings.colors.default,
+    align = {'right', 'center'},
   })
 
   -- top
@@ -378,18 +408,18 @@ function updateMemory(config)
 
     for _, data in pairs(cache.topMem) do
       write(cr, data.key:pad(20, ' ') .. tostring(data.sum):pad(6, ' ', 'STR_PAD_LEFT') .. '%', {
-        pos = { x = pos.x+200, y = y },
-        font = {settings.fonts.default, 10},
+        pos = { x = pos.x+scale(200), y = y },
+        font = {settings.fonts.default, scale(10)},
         color = settings.colors.default,
         align = {'right'},
       });
-      y = y + 12
+      y = y + scale(12)
     end
   end
 end
 
 function updateDisks(config)
-  local pos = config.pos or {x = 0, y = 250}
+  local pos = config.pos or {x = 0, y = scale(250)}
   local disks = config.disks or 'auto'
   if disks == 'auto' then
     disks = {
@@ -438,7 +468,7 @@ function updateDisks(config)
     sort = config.sort
   end
 
-  local radius, y, i = 56.5, pos.y + 8, 0
+  local radius, y, i = scale(56.5), pos.y + scale(8), 0
   for _,name in pairs(sort) do
     local mount = disks[name]
     i = i + 1
@@ -447,18 +477,18 @@ function updateDisks(config)
     local total = conky_parse('${fs_size ' .. mount .. '}'):pad(7, ' ', 'STR_PAD_LEFT')
     write(cr, name, {
       pos = {x = pos.x + 2, y = y},
-      font = {settings.fonts.default, 10},
+      font = {settings.fonts.default, scale(10)},
       color = settings.colors.default,
     })
     write(cr, used .. ' / ' .. total, {
-      pos = {x = pos.x+200, y = y},
-      font = {settings.fonts.default, 10},
+      pos = {x = pos.x+scale(200), y = y},
+      font = {settings.fonts.default, scale(10)},
       color = settings.colors.default,
       align = {'right'},
     })
     gauge(cr, tonumber(conky_parse('${fs_used_perc ' .. mount .. '}')), {
-        pos = {x = pos.x+210, y = pos.y+60},
-        radius = radius, thickness = 7,
+        pos = {x = pos.x+scale(210), y = pos.y+scale(60)},
+        radius = radius, thickness = scale(7),
         from = 0, to = 180,
         background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
         color = settings.colors.gauge,
@@ -466,21 +496,21 @@ function updateDisks(config)
         warn = {from = 85, color = settings.colors.gaugeInfo},
         crit = {from = 98, color = settings.colors.gaugeCrit},
     })
-    radius = radius - 12
-    y = y + 12
+    radius = radius - scale(12)
+    y = y + scale(12)
   end
 
   -- label
   write(cr, 'Disks', {
-    pos = {x = pos.x + 2, y = pos.y+58},
-    font = {settings.fonts.significant, 18, 0},
+    pos = {x = pos.x + 2, y = pos.y+scale(58)},
+    font = {settings.fonts.significant, scale(18), 0},
     color = settings.colors.highlight,
     align = {'left', 'top'},
   })
 end
 
 function updateNetwork(config)
-  local pos = config.pos or {x = width - 210, y = 315}
+  local pos = config.pos or {x = width - scale(210), y = scale(315)}
   local network = config.network or getCurrentNetwork()
   if network == 'auto' then
     network = getCurrentNetwork()
@@ -494,17 +524,17 @@ function updateNetwork(config)
 
   -- label
   write(cr, 'Network', {
-    pos = {x = pos.x+195, y = pos.y+8},
-    font = {settings.fonts.significant, 18, 0},
+    pos = {x = pos.x+scale(195), y = pos.y+scale(8)},
+    font = {settings.fonts.significant, scale(18), 0},
     color = settings.colors.highlight,
     align = {'right', 'top'},
   })
 
-  y = pos.y + 87
+  y = pos.y + scale(87)
   -- upload
   gauge(cr, upspeed, {
-    pos = {x = pos.x+50, y = pos.y+50},
-    radius = 35, thickness = 5,
+    pos = {x = pos.x+scale(50), y = pos.y+scale(50)},
+    radius = scale(35), thickness = scale(5),
     from = 240, to = 419,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -513,17 +543,17 @@ function updateNetwork(config)
     warn = {from = cache.maxUp * .50, color = settings.colors.gaugeInfo},
   })
   graph(cr, 'upload', upspeed, {
-    pos = {x = pos.x+35, y = pos.y + 50},
+    pos = {x = pos.x+scale(35), y = pos.y + scale(50)},
     direction = 'right', amplitude = 'up',
     color = settings.colors.gauge,
     alpha = 0.9, max = 'auto',
-    width = 160, height = 12,
+    width = scale(160), height = scale(12),
   })
   path(cr, {
-    pos = {x = pos.x+30, y = y-7},
+    pos = {x = pos.x+scale(30), y = y-scale(7)},
     points = {
-        { x = pos.x+35, y = y},
-        { x = pos.x+25, y = y},
+        { x = pos.x+scale(35), y = y},
+        { x = pos.x+scale(25), y = y},
     },
     fill = { color = upspeed > 0.1 and settings.colors.highlight or settings.colors.default },
   })
@@ -531,17 +561,17 @@ function updateNetwork(config)
   local up = humanReadableBytes(upspeed, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local upMax = humanReadableBytes(cache.maxUp, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
   write(cr, up .. ' / ' .. upMax .. ' ' .. totalUp, {
-    pos = {x = pos.x + 195, y = y},
-    font = {settings.fonts.default, 10},
+    pos = {x = pos.x + scale(195), y = y},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
     align = {'right'},
   })
-  y = y + 12
+  y = y + scale(12)
 
   -- download
   gauge(cr, downspeed, {
-    pos = {x = pos.x+50, y = pos.y+50},
-    radius = 45, thickness = 10,
+    pos = {x = pos.x+scale(50), y = pos.y+scale(50)},
+    radius = scale(45), thickness = scale(10),
     from = 242, to = 418,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -550,17 +580,17 @@ function updateNetwork(config)
     warn = {from = cache.maxUp * .50, color = settings.colors.gaugeInfo},
   })
   graph(cr, 'download', downspeed, {
-    pos = {x = pos.x+35, y = pos.y + 53},
+    pos = {x = pos.x+scale(35), y = pos.y + scale(53)},
     direction = 'right', amplitude = 'down',
     color = settings.colors.gauge,
     alpha = 0.9, max = 'auto',
-    width = 160, height = 12,
+    width = scale(160), height = scale(12),
   })
   path(cr, {
-    pos = {x = pos.x+30, y = y},
+    pos = {x = pos.x+scale(30), y = y},
     points = {
-        { x = pos.x+35, y = y-7},
-        { x = pos.x+25, y = y-7},
+        { x = pos.x+scale(35), y = y-scale(7)},
+        { x = pos.x+scale(25), y = y-scale(7)},
     },
     fill = { color = downspeed > 0.1 and settings.colors.highlight or settings.colors.default },
   })
@@ -568,27 +598,27 @@ function updateNetwork(config)
   local down = humanReadableBytes(downspeed, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
   local downMax = humanReadableBytes(cache.maxDown, 'KiB'):pad(7, ' ', 'STR_PAD_LEFT')
   write(cr, down .. ' / ' .. downMax .. ' ' .. totalDown, {
-    pos = {x = pos.x + 195, y = y},
-    font = {settings.fonts.default, 10},
+    pos = {x = pos.x + scale(195), y = y},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
     align = {'right'},
   })
-  y = y + 12
+  y = y + scale(12)
 
   -- info
   if config.hideInfo == nil or config.hideInfo == false then
     local localIp = conky_parse('${addr ' .. network .. '}')
     write(cr, 'LAN IP  ' .. localIp:pad(15, ' ', 'STR_PAD_LEFT'), {
-      pos = {x = pos.x + 195, y = y},
-      font = {settings.fonts.default, 10},
+      pos = {x = pos.x + scale(195), y = y},
+      font = {settings.fonts.default, scale(10)},
       color = settings.colors.default,
       align = {'right'},
     })
-    y = y + 12
+    y = y + scale(12)
     local publicIp = conky_parse('${execi 3600 wget -q -O - checkip.dyndns.org | sed -e \'s/[^[:digit:]\\|.]//g\'}')
     write(cr, 'WAN IP  ' .. publicIp:pad(15, ' ', 'STR_PAD_LEFT'), {
-      pos = {x = pos.x + 195, y = y},
-      font = {settings.fonts.default, 10},
+      pos = {x = pos.x + scale(195), y = y},
+      font = {settings.fonts.default, scale(10)},
       color = settings.colors.default,
       align = {'right'},
     })
@@ -597,7 +627,7 @@ end
 
 function updateBattery(config)
   if hasBattery() == false then return end
-  local pos = config.pos or {x = width - 382, y = 88}
+  local pos = config.pos or {x = width - scale(382), y = scale(88)}
 
   local percentage = tonumber(conky_parse('${battery_percent BAT0}'))
   -- I'm not really sure how to handle two batteries. Here I just create an average over both batteries
@@ -606,9 +636,9 @@ function updateBattery(config)
   end
 
   bar(cr, percentage, {
-    thickness = 15,
-    from = {x = pos.x + 30, y = pos.y + 12},
-    to = {x = pos.x + 174, y = pos.y + 12},
+    thickness = scale(15),
+    from = {x = pos.x + scale(30), y = pos.y + scale(12)},
+    to = {x = pos.x + scale(174), y = pos.y + scale(12)},
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
     alpha = settings.colors.gaugeAlpha,
@@ -628,7 +658,7 @@ function updateBattery(config)
 end
 
 function updateLoad(config)
-  local pos = config.pos or {x = 0, y = 340}
+  local pos = config.pos or {x = 0, y = scale(340)}
 
   local load1m = conky_parse('${loadavg 1}')
   local load5m = conky_parse('${loadavg 2}')
@@ -640,8 +670,8 @@ function updateLoad(config)
 
   -- gauges
   gauge(cr, tonumber(load1m), {
-    pos = {x = pos.x+8, y = pos.y+500},
-    radius = 484, thickness = 16,
+    pos = {x = pos.x+scale(8), y = pos.y+scale(500)},
+    radius = scale(484), thickness = scale(16),
     from = 0.4, to = 35,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -651,8 +681,8 @@ function updateLoad(config)
     crit = {from = crit, color = settings.colors.gaugeCrit},
   })
   gauge(cr, tonumber(load5m), {
-    pos = {x = pos.x+8, y = pos.y+500},
-    radius = 470, thickness = 8,
+    pos = {x = pos.x+scale(8), y = pos.y+scale(500)},
+    radius = scale(470), thickness = scale(8),
     from = 0.1, to = 33,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -662,8 +692,8 @@ function updateLoad(config)
     crit = {from = crit, color = settings.colors.gaugeCrit},
   })
   gauge(cr, tonumber(load15m), {
-    pos = {x = pos.x+8, y = pos.y+500},
-    radius = 462, thickness = 4,
+    pos = {x = pos.x+scale(8), y = pos.y+scale(500)},
+    radius = scale(462), thickness = scale(4),
     from = 0, to = 31,
     background = { color = settings.colors.gaugeBg, alpha = settings.colors.gaugeBgAlpha },
     color = settings.colors.gauge,
@@ -675,8 +705,8 @@ function updateLoad(config)
 
   -- label
   write(cr, 'Load average', {
-    pos = {x = pos.x+2, y = pos.y+58},
-    font = {settings.fonts.significant, 18, 0},
+    pos = {x = pos.x+scale(2), y = pos.y+scale(58)},
+    font = {settings.fonts.significant, scale(18), 0},
     color = settings.colors.highlight,
     align = {'left', 'top'},
   })
@@ -686,8 +716,8 @@ function updateLoad(config)
   -- load5m = load5m:pad(5, ' ')
   -- load15m = load15m:pad(5, ' ')
   write(cr, '1m ' .. load1m .. ' | 5m ' .. load5m .. ' | 15m ' .. load15m, {
-    pos = {x = pos.x+2, y = pos.y + 94},
-    font = {settings.fonts.default, 10},
+    pos = {x = pos.x+scale(2), y = pos.y + scale(94)},
+    font = {settings.fonts.default, scale(10)},
     color = settings.colors.default,
     align = {'left', 'top'},
   })
