@@ -1,6 +1,8 @@
+package.cpath = package.cpath .. ";/usr/lib/conky/lib?.so"
 require 'lib'
 require 'cairo-tools'
 require 'imlib2'
+require 'cairo_xlib'
 
 conky = {}
 require 'miracle-config'
